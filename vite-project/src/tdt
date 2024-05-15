@@ -1,0 +1,94 @@
+const taskForm = document.getElementById('taskForm');
+const taskList = [
+    { names: ["A"], duration: 2, previousTasks: ["deb"] },
+    { names: ["B"], duration: 5, previousTasks: ["deb"] },
+    { names: ["C"], duration: 3, previousTasks: ["deb"] },
+    { names: ["D"], duration: 7, previousTasks: ["A", "B"] },
+    { names: ["E"], duration: 3, previousTasks: ["D"] },
+    { names: ["F"], duration: 5, previousTasks: ["B", "D"] },
+    { names: ["G"], duration: 4, previousTasks: ["D", "C"] },
+    { names: ["H"], duration: 8, previousTasks: ["E", "G"] },
+    { names: ["I"], duration: 7, previousTasks: ["C", "E"] },
+    { names: ["J"], duration: 6, previousTasks: ["G", "H"] },
+    { names: ["K"], duration: 2, previousTasks: ["I", "F"] },
+    { names: ["L"], duration: 5, previousTasks: ["J"] },
+    { names: ["M"], duration: 2, previousTasks: ["K"] },
+  ];
+const taskTable = document.getElementById('taskTable').getElementsByTagName('tbody')[0];
+
+taskForm.addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const taskNames = document.getElementById('taskNames').value.split(',');
+    const taskDuration = document.getElementById('taskDuration').value;
+    const previousTasks = document.getElementById('previousTasks').value.split(',');
+
+    const task = {
+        names: taskNames.map(function(name) {
+            return name.trim();
+        }),
+        duration: parseInt(taskDuration),
+        previousTasks: previousTasks.map(function(task) {
+            return task.trim();
+        }),
+        successorTasks: []
+    };
+
+    taskList.push(task);
+    updateSuccessorTasks();
+    addFinalTasks();
+    renderTaskTable();
+    taskForm.reset();
+});
+
+function updateSuccessorTasks() {
+    taskList.forEach(function(task) {
+        task.successorTasks = [];
+        taskList.forEach(function(otherTask) {
+            if (otherTask.previousTasks.includes(task.names[0])) {
+                task.successorTasks.push(otherTask.names[0]);
+            }
+        });
+    });
+
+    // Ajouter les tâches de début (sans tâche antérieure)
+    taskList.forEach(function(task) {
+        if (task.previousTasks.length === 1 && task.previousTasks[0] === '-') {
+            task.previousTasks = ['deb'];
+        }
+    });
+}
+
+function addFinalTasks() {
+    taskList.forEach(function(task) {
+        if (task.successorTasks.length === 0) {
+            task.successorTasks.push('fin');
+        }
+    });
+}
+
+function renderTaskTable() {
+    taskTable.innerHTML = '';
+
+    taskList.forEach(function(task) {
+        const row = document.createElement('tr');
+
+        const nameCell = document.createElement('td');
+        nameCell.textContent = task.names.join(', ');
+        row.appendChild(nameCell);
+
+        const durationCell = document.createElement('td');
+        durationCell.textContent = task.duration;
+        row.appendChild(durationCell);
+
+        const previousTasksCell = document.createElement('td');
+        previousTasksCell.textContent = task.previousTasks.join(', ');
+        row.appendChild(previousTasksCell);
+
+        const successorTasksCell = document.createElement('td');
+        successorTasksCell.textContent = task.successorTasks.join(', ');
+        row.appendChild(successorTasksCell);
+
+        taskTable.appendChild(row);
+    });
+}

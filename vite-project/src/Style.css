@@ -1,0 +1,20 @@
+body {
+  margin: 10%;
+  box-sizing: border-box;
+}
+
+.dataContent {
+  display: flex;
+  justify-content: space-around;
+}
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.graphe {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
