@@ -1,94 +1,78 @@
-const taskForm = document.getElementById('taskForm');
-const taskList = [
-    { names: ["A"], duration: 2, previousTasks: ["deb"] },
-    { names: ["B"], duration: 5, previousTasks: ["deb"] },
-    { names: ["C"], duration: 3, previousTasks: ["deb"] },
-    { names: ["D"], duration: 7, previousTasks: ["A", "B"] },
-    { names: ["E"], duration: 3, previousTasks: ["D"] },
-    { names: ["F"], duration: 5, previousTasks: ["B", "D"] },
-    { names: ["G"], duration: 4, previousTasks: ["D", "C"] },
-    { names: ["H"], duration: 8, previousTasks: ["E", "G"] },
-    { names: ["I"], duration: 7, previousTasks: ["C", "E"] },
-    { names: ["J"], duration: 6, previousTasks: ["G", "H"] },
-    { names: ["K"], duration: 2, previousTasks: ["I", "F"] },
-    { names: ["L"], duration: 5, previousTasks: ["J"] },
-    { names: ["M"], duration: 2, previousTasks: ["K"] },
-  ];
-const taskTable = document.getElementById('taskTable').getElementsByTagName('tbody')[0];
+export const generateNodesAndEdges = (tasks) => {
+  const nodes = [];
+  const edges = [];
+  const taskMap = {};
 
-taskForm.addEventListener('submit', function(event) {
-    event.preventDefault();
+  // Charger les données actuelles des nœuds depuis le localStorage
+  const recentNodeData = JSON.parse(localStorage.getItem('nodePositions')) || {};
 
-    const taskNames = document.getElementById('taskNames').value.split(',');
-    const taskDuration = document.getElementById('taskDuration').value;
-    const previousTasks = document.getElementById('previousTasks').value.split(',');
+  tasks.forEach((task) => {
+    const nodeId = `node-${task.dateDebutPlusTot}`;
+    const taskLabel = `${task.dateDebutPlusTot} (${task.taskName})`;
+    const position = recentNodeData[nodeId] || { x: task.dateDebutPlusTot * 100, y: 100 };
 
-    const task = {
-        names: taskNames.map(function(name) {
-            return name.trim();
-        }),
-        duration: parseInt(taskDuration),
-        previousTasks: previousTasks.map(function(task) {
-            return task.trim();
-        }),
-        successorTasks: []
-    };
+    if (!taskMap[task.dateDebutPlusTot]) {
+      nodes.push({
+        id: nodeId,
+        data: { label: taskLabel, taskName: task.taskName, task },
+        position: position,
+        style: { borderRadius: "50%" },
+      });
+      taskMap[task.dateDebutPlusTot] = nodeId;
+    }
 
-    taskList.push(task);
-    updateSuccessorTasks();
-    addFinalTasks();
-    renderTaskTable();
-    taskForm.reset();
-});
+    task.successors.forEach((successor) => {
+      const successorTask = tasks.find((t) => t.taskName === successor);
+      const successorNodeId = `node-${successorTask.dateDebutPlusTot}`;
+      const successorPosition = recentNodeData[successorNodeId] || { x: 100, y: 100 };
 
-function updateSuccessorTasks() {
-    taskList.forEach(function(task) {
-        task.successorTasks = [];
-        taskList.forEach(function(otherTask) {
-            if (otherTask.previousTasks.includes(task.names[0])) {
-                task.successorTasks.push(otherTask.names[0]);
-            }
+      if (!taskMap[successorTask.dateDebutPlusTot]) {
+        nodes.push({
+          id: successorNodeId,
+          data: {
+            label: (
+              <div className="cercle">
+                <div className="dateplustot">
+                  {successorTask.dateDebutPlusTot}
+                  <span style={{ display: "none" }}>{successorTask.taskName}</span>
+                </div>
+                <div className="dateplustard">
+                  {task.datePlustard.map((date, index) => (
+                    <div className="chaque_dateplustard" key={index}>
+                      {date.date}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ),
+            taskName: successorTask.taskName,
+            task: successorTask,
+          },
+          position: successorPosition,
+          style: { borderRadius: "50%" },
+          sourcePosition: 'right',
+          targetPosition: 'left',
         });
+        taskMap[successorTask.dateDebutPlusTot] = successorNodeId;
+      }
+
+      edges.push({
+        id: `edge-${task.taskName}-${successor}`,
+        source: nodeId,
+        target: successorNodeId,
+        label: `${task.taskName} (${task.duration})`,
+        style: { strokeWidth: 2 },
+      });
     });
+  });
 
-    // Ajouter les tâches de début (sans tâche antérieure)
-    taskList.forEach(function(task) {
-        if (task.previousTasks.length === 1 && task.previousTasks[0] === '-') {
-            task.previousTasks = ['deb'];
-        }
-    });
-}
+  // Enregistrer les données actuelles des nœuds dans le localStorage
+  const nodeData = nodes.reduce((acc, node) => {
+    acc[node.id] = { taskName: node.data.taskName, x: node.position.x, y: node.position.y };
+    return acc;
+  }, {});
+  localStorage.setItem('nodeData', JSON.stringify(nodeData));
 
-function addFinalTasks() {
-    taskList.forEach(function(task) {
-        if (task.successorTasks.length === 0) {
-            task.successorTasks.push('fin');
-        }
-    });
-}
-
-function renderTaskTable() {
-    taskTable.innerHTML = '';
-
-    taskList.forEach(function(task) {
-        const row = document.createElement('tr');
-
-        const nameCell = document.createElement('td');
-        nameCell.textContent = task.names.join(', ');
-        row.appendChild(nameCell);
-
-        const durationCell = document.createElement('td');
-        durationCell.textContent = task.duration;
-        row.appendChild(durationCell);
-
-        const previousTasksCell = document.createElement('td');
-        previousTasksCell.textContent = task.previousTasks.join(', ');
-        row.appendChild(previousTasksCell);
-
-        const successorTasksCell = document.createElement('td');
-        successorTasksCell.textContent = task.successorTasks.join(', ');
-        row.appendChild(successorTasksCell);
-
-        taskTable.appendChild(row);
-    });
-}
+  console.log(nodes);
+  return { nodes, edges };
+};

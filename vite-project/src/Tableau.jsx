@@ -1,13 +1,30 @@
-import React, { useState } from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material';
-import { Delete } from '@mui/icons-material';
-
-function TaskTable({ tasks, setTasks }) {
+import React, { useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  Typography,
+  Box,
+} from "@mui/material";
+import { Delete } from "@mui/icons-material";
+import "./Style.css";
+function TaskTable({ tasks, setTasks,vider }) {
   const [selectedRowIndex, setSelectedRowIndex] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [formData, setFormData] = useState({
-    taskName: '',
-    duration: ''
+    taskName: "",
+    duration: "",
   });
 
   const handleRowClick = (index) => {
@@ -19,7 +36,7 @@ function TaskTable({ tasks, setTasks }) {
     setOpenDialog(true);
     setFormData({
       taskName: tasks[index].taskName,
-      duration: tasks[index].duration
+      duration: tasks[index].duration,
     });
   };
 
@@ -31,7 +48,7 @@ function TaskTable({ tasks, setTasks }) {
     const updatedTasks = [...tasks];
     updatedTasks.splice(index, 1);
     setTasks(updatedTasks);
-    setSelectedRowIndex(null); 
+    setSelectedRowIndex(null);
   };
 
   const handleFormChange = (event) => {
@@ -45,16 +62,22 @@ function TaskTable({ tasks, setTasks }) {
     updatedTasks[selectedRowIndex] = {
       ...updatedTasks[selectedRowIndex],
       taskName: formData.taskName,
-      duration: formData.duration
+      duration: formData.duration,
     };
     setTasks(updatedTasks);
     setOpenDialog(false);
   };
 
   return (
-    <>
-      <TableContainer component={Paper}>
-        <Table>
+    <div className="tableau">
+      <div className='tt'>
+        <Typography variant="h6" color="primary">
+          Liste des tâches
+        </Typography>
+        <Button variant="outlined" color="warning" onClick={vider}>Vider tableau</Button>
+      </div>
+      <TableContainer component={Box} style={{ height: "55vh" }}>
+        <Table stickyHeader>
           <TableHead>
             <TableRow>
               <TableCell>Nom Tâche</TableCell>
@@ -65,16 +88,20 @@ function TaskTable({ tasks, setTasks }) {
           </TableHead>
           <TableBody>
             {tasks.map((task, index) => (
-              <TableRow 
-                key={index} 
-                onClick={() => handleRowClick(index)} 
-                onDoubleClick={() => handleDoubleClick(index)} 
+              <TableRow
+                key={index}
+                onClick={() => handleRowClick(index)}
+                onDoubleClick={() => handleDoubleClick(index)}
                 selected={selectedRowIndex === index}
               >
                 <TableCell>{task.taskName}</TableCell>
                 <TableCell>{task.duration}</TableCell>
-                <TableCell>{task.previousTasks.join(', ')}</TableCell>
-                <TableCell>{task.successors.length > 0 ? task.successors.join(', ') : 'fin'}</TableCell>
+                <TableCell>{task.previousTasks.join(", ")}</TableCell>
+                <TableCell>
+                  {task.successors.length > 0
+                    ? task.successors.join(", ")
+                    : "fin"}
+                </TableCell>
                 {selectedRowIndex === index && (
                   <TableCell>
                     <IconButton onClick={() => handleDelete(index)}>
@@ -98,6 +125,7 @@ function TaskTable({ tasks, setTasks }) {
             onChange={handleFormChange}
             margin="normal"
             variant="outlined"
+            disabled
           />
           <TextField
             fullWidth
@@ -115,7 +143,7 @@ function TaskTable({ tasks, setTasks }) {
           <Button onClick={handleFormSubmit}>Enregistrer</Button>
         </DialogActions>
       </Dialog>
-    </>
+    </div>
   );
 }
 

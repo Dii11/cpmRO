@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Container, TextField, Button } from "@mui/material";
+import { Container, TextField, Button, Typography } from "@mui/material";
 import Tableau from "./Tableau";
 import {
   determineSuccessorTasks,
-  ordonnancerTaches,
-  createSuccessorLinks,
-  generateInitialNodes,
-  calculerDatesAuPlusTot,
   determineSuccessorsOfDeb,
   determinePreviousTasksOfFin,
-  calculerDatesAuPlusTard,
-  determineCheminCritique,
+  calculerDatesAuPlusTotEtPlusTard,
 } from "./Fonction";
-import Flow from "./Graphe";
-import Cercle from "./Cercle";
+  import Flow from "./Graphe";
+ //import Flow from "./G";
+
+import "./App.css";
 
 function TaskForm() {
   const [formData, setFormData] = useState({
@@ -23,14 +20,13 @@ function TaskForm() {
   });
 
   const [tasks, setTasks] = useState([]);
-  const [alltasks, setallTasks] = useState([]);
 
-  const [tachedetails, setTachedetails] = useState([]);
   const [showFlow, setShowFlow] = useState(false);
 
   const [graphe, setGraphe] = useState([]);
-  const [noeuds, setNoeuds] = useState([]);
+  const [bout, setbout] = useState("résoudre");
 
+  const [titre, settitre] = useState("Tâches");
   const handleChange = (event) => {
     const { name, value } = event.target;
     const newValue = name === "previousTasks" ? value.split(",") : value;
@@ -60,7 +56,7 @@ function TaskForm() {
   const handleResolve = () => {
     const succDeb = determineSuccessorsOfDeb(tasks);
     const prevFin = determinePreviousTasksOfFin(tasks);
-  
+
     const debTask = {
       taskName: "deb",
       duration: 0,
@@ -73,90 +69,96 @@ function TaskForm() {
       previousTasks: prevFin,
       successors: [],
     };
-  
-    const updatedTasks = tasks.concat( finTask);
-    setallTasks(updatedTasks);
-  
-    // Mettre à jour les tâches seulement après les avoir ajoutées
-    const ta = calculerDatesAuPlusTot(updatedTasks);
-    const tr = calculerDatesAuPlusTard(ta);
-    const chemin = determineCheminCritique(tr);
-  
-    // Mettre à jour le graphe et les nœuds après les calculs
-    setGraphe(createSuccessorLinks(ta));
-    setNoeuds(generateInitialNodes(ta));
-  
+    const updatedTasks = [debTask, ...tasks.concat(finTask)];
+    const ta = calculerDatesAuPlusTotEtPlusTard(updatedTasks);
+    setGraphe(ta);
     setShowFlow(true);
-  
-    const o = ordonnancerTaches(updatedTasks);
-    setTachedetails(tr);
-    console.log(graphe)
+    settitre("Ordonnancement des tâches Critical Path Method");
+    const bouton = document.querySelector(".bout");
+    bouton.style.backgroundColor = "green";
+    const b = (bouton.textContent = "modifier");
+    setbout(b);
   };
-  
-  
 
+  const modifier = () => {
+    setShowFlow(false);
+    settitre("Tâches");
+    const bouton = document.querySelector(".bout");
+    const b = (bouton.textContent = "résoudre");
 
+    bouton.style.backgroundColor = "blue";
+    setbout(b);
+  };
+
+  const vider=()=>setTasks([])
   return (
     <Container>
       <div className="content">
-        <div className="dataContent">
-          <div className="formulaire">
-            <form onSubmit={handleSubmit}>
-              <TextField
-                fullWidth
-                label="Nom Tâche"
-                name="taskName"
-                value={formData.taskName}
-                onChange={handleChange}
-                margin="normal"
-                variant="outlined"
-                required
-              />
-              <TextField
-                fullWidth
-                type="number"
-                label="Durée"
-                name="duration"
-                value={formData.duration}
-                onChange={handleChange}
-                margin="normal"
-                variant="outlined"
-              />
-              <TextField
-                fullWidth
-                label="Tâches antérieures (séparées par des virgules)"
-                name="previousTasks"
-                value={formData.previousTasks.join(",")}
-                onChange={handleChange}
-                margin="normal"
-                variant="outlined"
-                required
-              />
-              <Button type="submit" variant="contained" color="primary">
-                Ajouter
-              </Button>
-            </form>
+        <div className="entete">
+          <Typography variant="h4" color="secondary">
+            {titre}
+          </Typography>
+          <div className="bouton">
+            <Button variant="contained" 
+            className='bout'
+            color="primary" onClick={
+
+              bout=='modifier' ? modifier : handleResolve
+            }>{bout}
+            </Button>
+
+         
           </div>
-          <Tableau tasks={tasks} setTasks={setTasks} />
-          <Button variant="outlined" color="primary" onClick={handleResolve}>
-            Résoudre
-          </Button>
         </div>
 
-        {showFlow && <Flow initialEdges={graphe} initialNodes={noeuds} />}
-         {/* <div className="graphe">
         {showFlow ? (
-          <div>
-            {tachedetails.map((t, index) => (
-              <div key={index}>
-                <Cercle taches={t} />
-              </div>
-            ))}
-          </div>
+          <Flow tasks={graphe} />
+         // <Flow/>
         ) : (
-          <div>hello</div>
+          <div className="dataContent">
+            <div className="formulaire">
+              <Typography variant="h6" color="initial">
+                Ajouter des tâches
+              </Typography>
+              <form onSubmit={handleSubmit}>
+                <TextField
+                  fullWidth
+                  label="Nom Tâche"
+                  name="taskName"
+                  value={formData.taskName}
+                  onChange={handleChange}
+                  margin="normal"
+                  variant="outlined"
+                  required
+                />
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Durée"
+                  name="duration"
+                  value={formData.duration}
+                  onChange={handleChange}
+                  margin="normal"
+                  variant="outlined"
+                />
+                <TextField
+                  fullWidth
+                  label="Tâches antérieures (séparées par des virgules)"
+                  name="previousTasks"
+                  value={formData.previousTasks.join(",")}
+                  onChange={handleChange}
+                  margin="normal"
+                  variant="outlined"
+                  required
+                />
+                <Button type="submit" variant="contained" color="primary">
+                  Ajouter
+                </Button>
+              </form>
+            </div>
+            <Tableau tasks={tasks} setTasks={setTasks} vider={vider} />
+          </div>
         )}
-        </div>  */}
       </div>
     </Container>
   );
