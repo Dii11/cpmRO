@@ -1,0 +1,53 @@
+body {
+  box-sizing: border-box;
+  background-color: beige;
+}
+
+.dataContent {
+  display: grid;
+  grid-template-columns: 30% 60%;
+  gap: 10%;
+}        
+   
+.formulaire{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10%;
+  background-color: white;
+  border-radius: 10px;
+}
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.content{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 2%;
+}
+.entete{
+  display: flex;
+  justify-content: space-between;
+  background-color: white;
+  padding: 1.5%;
+  border-radius: 5px;
+}
+
+.tableau{
+
+  padding: 5%;
+  background-color: white;
+}
+.tt{
+  display: flex;
+  justify-content: space-between;
+}
+.bouton{
+  display: flex;
+  gap: 2%;
+}
+
+

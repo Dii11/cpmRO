@@ -1,0 +1,27 @@
+.cercle{
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+
+  
+
+  }
+  .dateplustot{
+   
+
+  }
+  .ligne{
+    width: 2px;
+    height: 100px;
+    background-color: black;
+  }
+  .dateplustard {
+  }
+  
+  .chaque_dateplustard{
+    margin-top: 5px;
+    border-bottom: 2px solid grey;
+  }
+
+ 
+  

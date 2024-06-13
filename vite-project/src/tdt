@@ -1,0 +1,78 @@
+export const generateNodesAndEdges = (tasks) => {
+  const nodes = [];
+  const edges = [];
+  const taskMap = {};
+
+  // Charger les données actuelles des nœuds depuis le localStorage
+  const recentNodeData = JSON.parse(localStorage.getItem('nodePositions')) || {};
+
+  tasks.forEach((task) => {
+    const nodeId = `node-${task.dateDebutPlusTot}`;
+    const taskLabel = `${task.dateDebutPlusTot} (${task.taskName})`;
+    const position = recentNodeData[nodeId] || { x: task.dateDebutPlusTot * 100, y: 100 };
+
+    if (!taskMap[task.dateDebutPlusTot]) {
+      nodes.push({
+        id: nodeId,
+        data: { label: taskLabel, taskName: task.taskName, task },
+        position: position,
+        style: { borderRadius: "50%" },
+      });
+      taskMap[task.dateDebutPlusTot] = nodeId;
+    }
+
+    task.successors.forEach((successor) => {
+      const successorTask = tasks.find((t) => t.taskName === successor);
+      const successorNodeId = `node-${successorTask.dateDebutPlusTot}`;
+      const successorPosition = recentNodeData[successorNodeId] || { x: 100, y: 100 };
+
+      if (!taskMap[successorTask.dateDebutPlusTot]) {
+        nodes.push({
+          id: successorNodeId,
+          data: {
+            label: (
+              <div className="cercle">
+                <div className="dateplustot">
+                  {successorTask.dateDebutPlusTot}
+                  <span style={{ display: "none" }}>{successorTask.taskName}</span>
+                </div>
+                <div className="dateplustard">
+                  {task.datePlustard.map((date, index) => (
+                    <div className="chaque_dateplustard" key={index}>
+                      {date.date}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ),
+            taskName: successorTask.taskName,
+            task: successorTask,
+          },
+          position: successorPosition,
+          style: { borderRadius: "50%" },
+          sourcePosition: 'right',
+          targetPosition: 'left',
+        });
+        taskMap[successorTask.dateDebutPlusTot] = successorNodeId;
+      }
+
+      edges.push({
+        id: `edge-${task.taskName}-${successor}`,
+        source: nodeId,
+        target: successorNodeId,
+        label: `${task.taskName} (${task.duration})`,
+        style: { strokeWidth: 2 },
+      });
+    });
+  });
+
+  // Enregistrer les données actuelles des nœuds dans le localStorage
+  const nodeData = nodes.reduce((acc, node) => {
+    acc[node.id] = { taskName: node.data.taskName, x: node.position.x, y: node.position.y };
+    return acc;
+  }, {});
+  localStorage.setItem('nodeData', JSON.stringify(nodeData));
+
+  console.log(nodes);
+  return { nodes, edges };
+};
